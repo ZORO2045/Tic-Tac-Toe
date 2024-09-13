@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe vs AI</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #0d0d0d; /* Dark background */
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #ff3d00; /* Red color */
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 1s ease;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: repeat(3, 120px);
+            grid-template-rows: repeat(3, 120px);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .cell {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(145deg, #3a3a3a, #1f1f1f);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 56px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 10px;
+            border: 3px solid #444; 
+            transition: background 0.3s ease, box-shadow 0.3s, transform 0.2s;
+        }
+        .cell:hover {
+            background: linear-gradient(145deg, #4a4a4a, #2f2f2f);
+            box-shadow: 0 0 20px rgba(255, 61, 0, 0.5);
+        }
+        .cell.X {
+            color: #ff3d00; /* Red color for X */
+        }
+        .cell.O {
+            color: #4caf50; /* Green for O */
+        }
+        .cell:active {
+            transform: scale(0.95); /* Slight scale down on click */
+        }
+        .winner-message {
+            margin-top: 20px;
+            font-size: 24px;
+            color: #00bcd4; /* Cyan for messages */
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .restart-btn {
+            padding: 10px 20px;
+            font-size: 18px;
+            background: linear-gradient(145deg, #ff3d00, #e10000); /* Gradient button */
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s;
+        }
+        .restart-btn:hover {
+            background: linear-gradient(145deg, #e10000, #ff3d00); /* Reverse gradient on hover */
+            transform: scale(1.05);
+        }
+        footer {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ff3d00; /* Red footer text */
+        }
+        footer a {
+            color: #00bcd4; /* Cyan link */
+            text-decoration: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tic-Tac-Toe</h1>
+        <div id="board">
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+            <div class="cell" data-cell></div>
+        </div>
+        <div class="winner-message" id="winnerMessage"></div>
+        <button class="restart-btn" id="restartButton">Restart Game</button>
+        <footer>
+            Developed by <a href="https://t.me/ZORO2045">ፚ Ꭷ Ꮢ Ꭷ ❥</a>
+        </footer>
+    </div>
+
+    <script>
+        const X_CLASS = 'X';
+        const O_CLASS = 'O';
+        const cells = document.querySelectorAll('[data-cell]');
+        const board = document.getElementById('board');
+        const winnerMessage = document.getElementById('winnerMessage');
+        const restartButton = document.getElementById('restartButton');
+        const winningCombinations = [
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [0, 3, 6],
+            [1, 4, 7],
+            [2, 5, 8],
+            [0, 4, 8],
+            [2, 4, 6]
+        ];
+        let circleTurn;
+        let isGameOver = false;
+
+        startGame();
+
+        restartButton.addEventListener('click', startGame);
+
+        function startGame() {
+            circleTurn = false;
+            isGameOver = false;
+            cells.forEach(cell => {
+                cell.classList.remove(X_CLASS);
+                cell.classList.remove(O_CLASS);
+                cell.textContent = ''; // Clear the text
+                cell.addEventListener('click', handleClick, { once: true });
+            });
+            winnerMessage.innerText = '';
+            winnerMessage.style.opacity = 0; // Reset opacity
+            board.style.pointerEvents = 'all';
+        }
+
+        function handleClick(e) {
+            if (isGameOver) return;
+            const cell = e.target;
+            const currentClass = circleTurn ? O_CLASS : X_CLASS;
+            placeMark(cell, currentClass);
+            if (checkWin(currentClass)) {
+                endGame(false, currentClass);
+            } else if (isDraw()) {
+                endGame(true);
+            } else {
+                swapTurns();
+                if (circleTurn && !isGameOver) {
+                    board.style.pointerEvents = 'none'; // Disable user clicks during AI turn
+                    setTimeout(robotMove, 500); // Small delay for realism
+                }
+            }
+        }
+
+        function placeMark(cell, currentClass) {
+            cell.textContent = currentClass;
+            cell.classList.add(currentClass);
+        }
+
+        function swapTurns() {
+            circleTurn = !circleTurn;
+        }
+
+        function robotMove() {
+            const shouldPlaySmart = Math.random() < 0.7; // 70% chance to play smart
+
+            let bestMove;
+            if (shouldPlaySmart) {
+                bestMove = findBestMove();
+            } else {
+                const availableCells = [...cells].map((cell, index) => {
+                    return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS) ? index : null;
+                }).filter(index => index !== null);
+                bestMove = availableCells[Math.floor(Math.random() * availableCells.length)];
+            }
+
+            const cell = cells[bestMove];
+            placeMark(cell, O_CLASS);
+            cell.removeEventListener('click', handleClick); // Remove click event for AI move
+            if (checkWin(O_CLASS)) {
+                endGame(false, O_CLASS);
+            } else if (isDraw()) {
+                endGame(true);
+            } else {
+                swapTurns();
+                board.style.pointerEvents = 'all'; // Enable user clicks after AI move
+            }
+        }
+
+        function findBestMove() {
+            const availableCells = [...cells].map((cell, index) => {
+                return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS) ? index : null;
+            }).filter(index => index !== null);
+
+            // Try to win if possible
+            for (let i of availableCells) {
+                cells[i].classList.add(O_CLASS);
+                if (checkWin(O_CLASS)) {
+                    cells[i].classList.remove(O_CLASS);
+                    return i; // Win here
+                }
+                cells[i].classList.remove(O_CLASS);
+            }
+
+            // Block player's win
+            for (let i of availableCells) {
+                cells[i].classList.add(X_CLASS);
+                if (checkWin(X_CLASS)) {
+                    cells[i].classList.remove(X_CLASS);
+                    return i; // Block here
+                }
+                cells[i].classList.remove(X_CLASS);
+            }
+
+            // Choose a random cell if no win or block
+            return availableCells[Math.floor(Math.random() * availableCells.length)];
+        }
+
+        function checkWin(currentClass) {
+            return winningCombinations.some(combination => {
+                return combination.every(index => {
+                    return cells[index].classList.contains(currentClass);
+                });
+            });
+        }
+
+        function isDraw() {
+            return [...cells].every(cell => {
+                return cell.classList.contains(X_CLASS) || cell.classList.contains(O_CLASS);
+            });
+        }
+
+        function endGame(draw, winner = null) {
+            isGameOver = true;
+            if (draw) {
+                winnerMessage.innerText = 'It\'s a Draw!';
+            } else {
+                winnerMessage.innerText = `${winner} Wins!`;
+            }
+            winnerMessage.style.opacity = 1; // Fade in the message
+            cells.forEach(cell => cell.removeEventListener('click', handleClick));
+            board.style.pointerEvents = 'none'; // Disable all moves after the game ends
+        }
+    </script>
+</body>
+  </html>
