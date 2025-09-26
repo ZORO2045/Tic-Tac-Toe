@@ -3,105 +3,280 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tic-Tac-Toe vs AI</title>
+    <title>Tic-Tac-Toe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
         body {
-            font-family: 'Roboto', sans-serif;
-            background-color: #0d0d0d; /* Dark background */
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #ffffff;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
         }
+
+        .game-header {
+            margin-bottom: 25px;
+        }
+
         h1 {
-            color: #ff3d00; /* Red color */
-            margin-bottom: 20px;
-            text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 1s ease;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-top: 50px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #4cc9f0, #4361ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .player-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .player-x .player-icon {
+            background: #f72585;
+        }
+
+        .player-o .player-icon {
+            background: #4cc9f0;
+        }
+
+        .current-turn {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
         #board {
             display: grid;
-            grid-template-columns: repeat(3, 120px);
-            grid-template-rows: repeat(3, 120px);
-            gap: 15px;
-            margin-bottom: 20px;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 12px;
+            margin: 25px 0;
         }
+
         .cell {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(145deg, #3a3a3a, #1f1f1f);
+            aspect-ratio: 1;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 56px;
-            font-weight: bold;
+            font-size: 3.5rem;
+            font-weight: 700;
             cursor: pointer;
-            border-radius: 10px;
-            border: 3px solid #444; 
-            transition: background 0.3s ease, box-shadow 0.3s, transform 0.2s;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
+
         .cell:hover {
-            background: linear-gradient(145deg, #4a4a4a, #2f2f2f);
-            box-shadow: 0 0 20px rgba(255, 61, 0, 0.5);
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
         }
-        .cell.X {
-            color: #ff3d00; /* Red color for X */
-        }
-        .cell.O {
-            color: #4caf50; /* Green for O */
-        }
+
         .cell:active {
-            transform: scale(0.95); /* Slight scale down on click */
+            transform: translateY(0);
         }
-        .winner-message {
+
+        .cell.X {
+            color: #f72585;
+        }
+
+        .cell.O {
+            color: #4cc9f0;
+        }
+
+        .cell.win-cell {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 201, 240, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 201, 240, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 201, 240, 0); }
+        }
+
+        .game-controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
             margin-top: 20px;
-            font-size: 24px;
-            color: #00bcd4; /* Cyan for messages */
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.5s;
         }
-        .restart-btn {
-            padding: 10px 20px;
-            font-size: 18px;
-            background: linear-gradient(145deg, #ff3d00, #e10000); /* Gradient button */
-            color: #ffffff;
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1rem;
+            font-weight: 600;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.3s ease, transform 0.2s;
+            transition: all 0.3s ease;
         }
-        .restart-btn:hover {
-            background: linear-gradient(145deg, #e10000, #ff3d00); /* Reverse gradient on hover */
-            transform: scale(1.05);
+
+        .btn-primary {
+            background: linear-gradient(90deg, #4361ee, #3a0ca3);
+            color: white;
         }
-        footer {
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .game-status {
             margin-top: 20px;
-            font-size: 14px;
-            color: #ff3d00; /* Red footer text */
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.5s ease;
         }
+
+        .status-win {
+            background: rgba(76, 201, 240, 0.2);
+            color: #4cc9f0;
+        }
+
+        .status-draw {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .difficulty-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.active {
+            background: #4361ee;
+        }
+
+        footer {
+            margin-top: 25px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
         footer a {
-            color: #00bcd4; /* Cyan link */
+            color: #4cc9f0;
             text-decoration: none;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        @media (max-width: 500px) {
+            .game-container {
+                padding: 20px 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .cell {
+                font-size: 2.5rem;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .game-controls {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Tic-Tac-Toe</h1>
+    <div class="game-container">
+        <div class="game-header">
+            <h1>Tic-Tac-Toe</h1>           
+        </div>
+        
+        <div class="game-info">
+            <div class="player-info player-x">
+                <div class="player-icon">X</div>
+                <span>Player (X)</span>
+            </div>
+            <div class="current-turn" id="currentTurn">X's Turn</div>
+            <div class="player-info player-o">
+                <div class="player-icon">O</div>
+                <span>AI (O)</span>
+            </div>
+        </div>
+        
+        <div class="difficulty-selector">
+            <button class="difficulty-btn" data-difficulty="easy">Easy</button>
+            <button class="difficulty-btn active" data-difficulty="medium">Medium</button>
+            <button class="difficulty-btn" data-difficulty="hard">Hard</button>
+        </div>
+        
         <div id="board">
             <div class="cell" data-cell></div>
             <div class="cell" data-cell></div>
@@ -113,65 +288,139 @@
             <div class="cell" data-cell></div>
             <div class="cell" data-cell></div>
         </div>
-        <div class="winner-message" id="winnerMessage"></div>
-        <button class="restart-btn" id="restartButton">Restart Game</button>
+        
+        <div class="game-status" id="gameStatus"></div>
+        
+        <div class="game-controls">
+            <button class="btn btn-primary" id="restartButton">New Game</button>
+            <button class="btn btn-secondary" id="toggleSound">Sound: On</button>
+        </div>
+        
         <footer>
-            Developed by <a href="https://t.me/ZORO2045">ፚ Ꭷ Ꮢ Ꭷ ❥</a>
+            Developed by <a href="https://t.me/ZORO2045" target="_blank">ፚ Ꭷ Ꮢ Ꭷ ❥</a>
         </footer>
     </div>
 
     <script>
-        const X_CLASS = 'X';
-        const O_CLASS = 'O';
         const cells = document.querySelectorAll('[data-cell]');
         const board = document.getElementById('board');
-        const winnerMessage = document.getElementById('winnerMessage');
+        const gameStatus = document.getElementById('gameStatus');
         const restartButton = document.getElementById('restartButton');
+        const currentTurn = document.getElementById('currentTurn');
+        const difficultyButtons = document.querySelectorAll('.difficulty-btn');
+        const toggleSoundButton = document.getElementById('toggleSound');
+
+        const X_CLASS = 'X';
+        const O_CLASS = 'O';
         const winningCombinations = [
-            [0, 1, 2],
-            [3, 4, 5],
-            [6, 7, 8],
-            [0, 3, 6],
-            [1, 4, 7],
-            [2, 5, 8],
-            [0, 4, 8],
-            [2, 4, 6]
+            [0, 1, 2], [3, 4, 5], [6, 7, 8],
+            [0, 3, 6], [1, 4, 7], [2, 5, 8],
+            [0, 4, 8], [2, 4, 6]
         ];
-        let circleTurn;
+
+        let circleTurn = false;
         let isGameOver = false;
+        let difficulty = 'medium';
+        let soundEnabled = true;
+
+        let audioContext;
+        let placeSound, winSound, drawSound;
+
+        function initAudio() {
+            try {
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                placeSound = createBeepSound(800, 0.1);
+                
+                winSound = createBeepSound(600, 0.3);
+                
+                drawSound = createBeepSound(400, 0.5);
+            } catch (e) {
+                console.log("Audio initialization failed:", e);
+                soundEnabled = false;
+                toggleSoundButton.textContent = "Sound: Unavailable";
+                toggleSoundButton.disabled = true;
+            }
+        }
+
+        function createBeepSound(frequency, duration) {
+            return function() {
+                if (!soundEnabled || !audioContext) return;
+                
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+        }
 
         startGame();
 
         restartButton.addEventListener('click', startGame);
+        toggleSoundButton.addEventListener('click', toggleSound);
+        
+        difficultyButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                difficultyButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                difficulty = button.dataset.difficulty;
+                startGame();
+            });
+        });
 
         function startGame() {
             circleTurn = false;
             isGameOver = false;
+            
             cells.forEach(cell => {
                 cell.classList.remove(X_CLASS);
                 cell.classList.remove(O_CLASS);
-                cell.textContent = ''; // Clear the text
+                cell.classList.remove('win-cell');
+                cell.textContent = '';
                 cell.addEventListener('click', handleClick, { once: true });
             });
-            winnerMessage.innerText = '';
-            winnerMessage.style.opacity = 0; // Reset opacity
+            
+            gameStatus.textContent = '';
+            gameStatus.className = 'game-status';
+            updateTurnIndicator();
+            
             board.style.pointerEvents = 'all';
         }
 
         function handleClick(e) {
             if (isGameOver) return;
+            
             const cell = e.target;
             const currentClass = circleTurn ? O_CLASS : X_CLASS;
+            
             placeMark(cell, currentClass);
+            
+            if (soundEnabled && placeSound) {
+                placeSound();
+            }
+            
             if (checkWin(currentClass)) {
                 endGame(false, currentClass);
             } else if (isDraw()) {
                 endGame(true);
             } else {
                 swapTurns();
+                updateTurnIndicator();
+                
                 if (circleTurn && !isGameOver) {
-                    board.style.pointerEvents = 'none'; // Disable user clicks during AI turn
-                    setTimeout(robotMove, 500); // Small delay for realism
+                    board.style.pointerEvents = 'none';
+                    setTimeout(aiMove, 600);
                 }
             }
         }
@@ -185,58 +434,83 @@
             circleTurn = !circleTurn;
         }
 
-        function robotMove() {
-            const shouldPlaySmart = Math.random() < 0.7; // 70% chance to play smart
+        function updateTurnIndicator() {
+            currentTurn.textContent = `${circleTurn ? 'O' : 'X'}'s Turn`;
+        }
 
+        function aiMove() {
             let bestMove;
-            if (shouldPlaySmart) {
-                bestMove = findBestMove();
-            } else {
-                const availableCells = [...cells].map((cell, index) => {
-                    return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS) ? index : null;
-                }).filter(index => index !== null);
-                bestMove = availableCells[Math.floor(Math.random() * availableCells.length)];
+            
+            switch (difficulty) {
+                case 'easy':
+                    bestMove = getRandomMove();
+                    break;
+                case 'medium':
+                    bestMove = Math.random() < 0.7 ? getSmartMove() : getRandomMove();
+                    break;
+                case 'hard':
+                    bestMove = getSmartMove();
+                    break;
+                default:
+                    bestMove = getSmartMove();
             }
-
+            
             const cell = cells[bestMove];
             placeMark(cell, O_CLASS);
-            cell.removeEventListener('click', handleClick); // Remove click event for AI move
+            
+            if (soundEnabled && placeSound) {
+                placeSound();
+            }
+            
+            cell.removeEventListener('click', handleClick);
+            
             if (checkWin(O_CLASS)) {
                 endGame(false, O_CLASS);
             } else if (isDraw()) {
                 endGame(true);
             } else {
                 swapTurns();
-                board.style.pointerEvents = 'all'; // Enable user clicks after AI move
+                updateTurnIndicator();
+                board.style.pointerEvents = 'all';
             }
         }
 
-        function findBestMove() {
+        function getRandomMove() {
+            const availableCells = [...cells].map((cell, index) => {
+                return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS) ? index : null;
+            }).filter(index => index !== null);
+            
+            return availableCells[Math.floor(Math.random() * availableCells.length)];
+        }
+
+        function getSmartMove() {
             const availableCells = [...cells].map((cell, index) => {
                 return !cell.classList.contains(X_CLASS) && !cell.classList.contains(O_CLASS) ? index : null;
             }).filter(index => index !== null);
 
-            // Try to win if possible
             for (let i of availableCells) {
                 cells[i].classList.add(O_CLASS);
                 if (checkWin(O_CLASS)) {
                     cells[i].classList.remove(O_CLASS);
-                    return i; // Win here
+                    return i;
                 }
                 cells[i].classList.remove(O_CLASS);
             }
 
-            // Block player's win
             for (let i of availableCells) {
                 cells[i].classList.add(X_CLASS);
                 if (checkWin(X_CLASS)) {
                     cells[i].classList.remove(X_CLASS);
-                    return i; // Block here
+                    return i;
                 }
                 cells[i].classList.remove(X_CLASS);
             }
 
-            // Choose a random cell if no win or block
+            const centerAndCorners = [0, 2, 4, 6, 8].filter(index => availableCells.includes(index));
+            if (centerAndCorners.length > 0) {
+                return centerAndCorners[Math.floor(Math.random() * centerAndCorners.length)];
+            }
+
             return availableCells[Math.floor(Math.random() * availableCells.length)];
         }
 
@@ -256,15 +530,41 @@
 
         function endGame(draw, winner = null) {
             isGameOver = true;
+            
             if (draw) {
-                winnerMessage.innerText = 'It\'s a Draw!';
+                gameStatus.textContent = "Game ended in a draw!";
+                gameStatus.classList.add('status-draw');
+                
+                if (soundEnabled && drawSound) {
+                    drawSound();
+                }
             } else {
-                winnerMessage.innerText = `${winner} Wins!`;
+                gameStatus.textContent = `${winner === X_CLASS ? 'Player' : 'AI'} wins!`;
+                gameStatus.classList.add('status-win');
+                
+                winningCombinations.forEach(combination => {
+                    if (combination.every(index => cells[index].classList.contains(winner))) {
+                        combination.forEach(index => {
+                            cells[index].classList.add('win-cell');
+                        });
+                    }
+                });
+                
+                if (soundEnabled && winSound) {
+                    winSound();
+                }
             }
-            winnerMessage.style.opacity = 1; // Fade in the message
+            
             cells.forEach(cell => cell.removeEventListener('click', handleClick));
-            board.style.pointerEvents = 'none'; // Disable all moves after the game ends
+            board.style.pointerEvents = 'none';
         }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            toggleSoundButton.textContent = `Sound: ${soundEnabled ? 'On' : 'Off'}`;
+        }
+
+        window.addEventListener('load', initAudio);
     </script>
 </body>
-  </html>
+    </html>
